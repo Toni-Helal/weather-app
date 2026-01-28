@@ -1,20 +1,27 @@
 import { useState, useEffect } from "react";
 import { MainCard } from "../components/MainCard";
 import { ContentBox } from "../components/ContentBox";
+import { DateAndTime } from "../components/DateAndTime";
 
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const res = await fetch("/api/data");
-      const data = await res.json();
-      setWeatherData(data);
-    };
+    useEffect(() => {
+      const fetchData = async () => {
+        const res = await fetch("/api/data");
+        const data = await res.json();
+        setWeatherData(data);
+      };
 
-    fetchData();
-  }, []);
+      fetchData();
+
+      const interval = setInterval(fetchData, 60 * 60 * 1000);
+
+      return () => clearInterval(interval);
+    }, []);
+
+
 
   if (!weatherData) {
     return <p>Loading...</p>;
@@ -25,8 +32,8 @@ export default function Home() {
         <MainCard
           temperature={weatherData.temperature}
           windSpeed={weatherData.windSpeed}
-          time={weatherData.time}
         />
+        <DateAndTime time={weatherData.time} />
       </ContentBox>
     );
 }
