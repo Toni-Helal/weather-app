@@ -10,7 +10,6 @@ export function MainCard({ temperature, windSpeed, time }) {
       </h1>
 
       <p>Wind: {Math.round(windSpeed)} km/h</p>
-      <p>{date.toLocaleString()}</p>
     </div>
   );
 }
