@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { MainCard } from "../components/MainCard";
 import { ContentBox } from "../components/ContentBox";
 import { DateAndTime } from "../components/DateAndTime";
-
+import styles from "../styles/Home.module.css";
+import { getWeatherTheme } from "../utils/weatherMap";
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState(null);
@@ -27,13 +28,23 @@ export default function Home() {
     return <p>Loading...</p>;
   }
 
+    const theme = getWeatherTheme(weatherData.weatherCode);
+
     return (
-      <ContentBox>
-        <MainCard
-          temperature={weatherData.temperature}
-          windSpeed={weatherData.windSpeed}
-        />
-        <DateAndTime time={weatherData.time} />
-      </ContentBox>
+      <div className={styles[theme] || styles.default}>
+        <ContentBox>
+          <MainCard
+            city={weatherData.city}
+            temperature={weatherData.temperature}
+            windSpeed={weatherData.windSpeed}
+            weatherCode={weatherData.weatherCode}
+          />
+          <DateAndTime
+            time={weatherData.time}
+            sunrise={weatherData.sunrise}
+            sunset={weatherData.sunset}
+          />
+        </ContentBox>
+      </div>
     );
 }

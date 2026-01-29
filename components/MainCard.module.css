@@ -16,3 +16,9 @@
 .temperature {
   font-size: 84px;
 }
+
+.icon {
+  width: 120px;
+  height: auto;
+  margin: 16px 0;
+}
