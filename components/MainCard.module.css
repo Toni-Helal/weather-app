@@ -18,7 +18,39 @@
 }
 
 .icon {
-  width: 120px;
-  height: auto;
-  margin: 16px 0;
+    width: 180px;
+    margin: 32px auto;
+}
+
+.card {
+  width: 100%;
+  max-width: 360px;
+  min-height: 520px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  padding: 40px 24px;
+  text-align: center;
+  height: 100%;
+}
+
+.city {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+
+.temp {
+  font-size: 96px;
+  font-weight: 700;
+}
+
+.wind {
+  margin-top: 16px;
+  opacity: 0.7;
+}
+
+.feelsLike {
+  font-size: 16px;
+  opacity: 0.6;
+  margin-top: -8px;
 }

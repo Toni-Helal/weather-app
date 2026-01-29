@@ -34,32 +34,33 @@ export default function Home() {
 
   return (
     <div className={styles[theme] || styles["default-day"]}>
-      <ContentBox>
-        <MainCard
-          city={weatherData.city}
-          temperature={weatherData.temperature}
-          feelsLike={weatherData.feelsLike}
-          windSpeed={weatherData.windSpeed}
-          windDirection={weatherData.windDirection}
-          weatherCode={weatherData.weatherCode}
-          time={weatherData.time}
-          sunrise={weatherData.sunrise}
-          sunset={weatherData.sunset}
-        />
+          <ContentBox>
+            <div className={styles.left}>
+              <MainCard
+                city={weatherData.city}
+                temperature={weatherData.temperature}
+                feelsLike={weatherData.feelsLike}
+                windSpeed={weatherData.windSpeed}
+                weatherCode={weatherData.weatherCode}
+                time={weatherData.time}
+                sunrise={weatherData.sunrise}
+                sunset={weatherData.sunset}
+              />
+            </div>
 
-        <DateAndTime
-          time={weatherData.time}
-        />
+            <div className={styles.right}>
+              <DateAndTime time={weatherData.time} />
 
-        <MetricsBox
-          windSpeed={weatherData.windSpeed}
-          windDirection={weatherData.windDirection}
-          sunrise={weatherData.sunrise}
-          sunset={weatherData.sunset}
-          humidity={weatherData.humidity}
-          visibility={weatherData.visibility}
-        />
-      </ContentBox>
+              <MetricsBox
+                windSpeed={weatherData.windSpeed}
+                windDirection={weatherData.windDirection}
+                sunrise={weatherData.sunrise}
+                sunset={weatherData.sunset}
+                humidity={weatherData.humidity}
+                visibility={weatherData.visibility}
+              />
+            </div>
+        </ContentBox>
     </div>
   );
 }

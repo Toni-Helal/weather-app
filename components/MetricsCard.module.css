@@ -10,6 +10,41 @@
   grid-template-columns: 1fr 1fr;
 }
 
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 8px;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  height: 48ps;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+
+.title {
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.value {
+  font-size: 22px;
+  font-weight: 600;
+}
+
 @media only screen and (max-width: 475px) {
   .content {
     grid-template-columns: 1fr 2fr;
