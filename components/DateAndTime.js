@@ -1,10 +1,13 @@
 import { getWeekDay, getTime, getAMPM } from "../services/helpers";
 import styles from "./DateAndTime.module.css";
 
-export function DateAndTime({ time }) {
+export function DateAndTime() {
+    const now = new Date()
+    
   return (
-    <div>
-      <p>{new Date(time).toLocaleString()}</p>
-    </div>
+    <p>
+        {now.toLocaleDateString()}{" "}
+        {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+    </p>
   );
 }

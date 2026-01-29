@@ -1,67 +1,71 @@
-import { useState, useEffect } from "react";
-import { ContentBox } from "../components/ContentBox";
-import { MainCard } from "../components/MainCard";
-import { DateAndTime } from "../components/DateAndTime";
-import { MetricsBox } from "../components/MetricsBox";
-import styles from "../styles/Home.module.css";
-import { getWeatherTheme } from "../utils/weatherMap";
+import { useState, useEffect } from "react"
+import { ContentBox } from "../components/ContentBox"
+import { MainCard } from "../components/MainCard"
+import { DateAndTime } from "../components/DateAndTime"
+import { MetricsBox } from "../components/MetricsBox"
+import styles from "../styles/Home.module.css"
+import { getWeatherTheme } from "../utils/weatherMap"
 
 export default function Home() {
-  const [weatherData, setWeatherData] = useState(null);
+  // === 1. Weather data ===
+  const [weatherData, setWeatherData] = useState(null)
 
+  // === 2. Unit system (single source of truth) ===
+  const [unitSystem, setUnitSystem] = useState("metric")
+
+  // === 3. Auto-switch unit system every 10s ===
+  useEffect(() => {
+    const id = setInterval(() => {
+      setUnitSystem(u => (u === "metric" ? "imperial" : "metric"))
+    }, 10000)
+
+    return () => clearInterval(id)
+  }, [])
+
+  // === 4. Fetch weather data ===
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch("/api/data");
-      const data = await res.json();
-      setWeatherData(data);
-    };
+      const res = await fetch("/api/data")
+      const data = await res.json()
+      setWeatherData(data)
+    }
 
-    fetchData();
-    const interval = setInterval(fetchData, 60 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
+    fetchData()
+    const interval = setInterval(fetchData, 60 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   if (!weatherData) {
-    return <p>Loading...</p>;
+    return <p>Loading...</p>
   }
 
+  // === 5. Theme ===
   const theme = getWeatherTheme(
     weatherData.weatherCode,
     weatherData.time,
     weatherData.sunrise,
     weatherData.sunset
-  );
+  )
 
   return (
     <div className={styles[theme] || styles["default-day"]}>
-          <ContentBox>
-            <div className={styles.left}>
-              <MainCard
-                city={weatherData.city}
-                temperature={weatherData.temperature}
-                feelsLike={weatherData.feelsLike}
-                windSpeed={weatherData.windSpeed}
-                weatherCode={weatherData.weatherCode}
-                time={weatherData.time}
-                sunrise={weatherData.sunrise}
-                sunset={weatherData.sunset}
-              />
-            </div>
+      <ContentBox>
+        <div className={styles.left}>
+          <MainCard
+            data={weatherData}
+            unitSystem={unitSystem}
+          />
+        </div>
 
-            <div className={styles.right}>
-              <DateAndTime time={weatherData.time} />
+        <div className={styles.right}>
+          <DateAndTime />
 
-              <MetricsBox
-                windSpeed={weatherData.windSpeed}
-                windDirection={weatherData.windDirection}
-                sunrise={weatherData.sunrise}
-                sunset={weatherData.sunset}
-                humidity={weatherData.humidity}
-                visibility={weatherData.visibility}
-              />
-            </div>
-        </ContentBox>
+          <MetricsBox
+            data={weatherData}
+            unitSystem={unitSystem}
+          />
+        </div>
+      </ContentBox>
     </div>
-  );
+  )
 }
-

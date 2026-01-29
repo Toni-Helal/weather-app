@@ -1,14 +1,14 @@
-import fs from "fs";
-import path from "path";
+import fs from "fs"
+import path from "path"
 
 export default async function handler(req, res) {
   try {
-    const filePath = path.join(process.cwd(), "config/location.json");
-    const fileData = fs.readFileSync(filePath, "utf8");
-    const location = JSON.parse(fileData);
+    // === 1. Load location config ===
+    const filePath = path.join(process.cwd(), "config/location.json")
+    const fileData = fs.readFileSync(filePath, "utf8")
+    const { latitude, longitude, city } = JSON.parse(fileData)
 
-    const { latitude, longitude, city } = location;
-
+    // === 2. Build Open-Meteo URL (metric only) ===
     const url =
       "https://api.open-meteo.com/v1/forecast" +
       `?latitude=${latitude}` +
@@ -17,53 +17,40 @@ export default async function handler(req, res) {
       "&hourly=relativehumidity_2m,visibility" +
       "&daily=sunrise,sunset" +
       "&forecast_days=1" +
-      "&timezone=auto";
+      "&timezone=auto"
 
-    const response = await fetch(url);
-    const data = await response.json();
-
-    const temperature = data.current_weather?.temperature ?? null;
-    const windSpeed = data.current_weather?.windspeed ?? null;
-    const windDirection = data.current_weather?.winddirection ?? null;
-
-    const humidity =
-      data.hourly?.relativehumidity_2m?.[0] ?? null;
-
-    const visibility =
-      data.hourly?.visibility?.[0] ?? null;
-
-    function calculateFeelsLike(temp, wind) {
-      if (temp == null || wind == null) return null;
-
-      if (temp > 10) return temp;
-
-      const v = Math.pow(wind, 0.16);
-
-      return (
-        13.12 +
-        0.6215 * temp -
-        11.37 * v +
-        0.3965 * temp * v
-      );
+    // === 3. Fetch weather data ===
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error("Weather API request failed")
     }
 
-    const feelsLike = calculateFeelsLike(temperature, windSpeed);
+    const apiData = await response.json()
 
+    // === 4. Normalize and return data ===
     res.status(200).json({
       city,
-      temperature,
-      feelsLike: feelsLike !== null ? Math.round(feelsLike) : null,
-      windSpeed,
-      windDirection,
-      weatherCode: data.current_weather?.weathercode ?? null,
-      time: data.current_weather?.time ?? null,
-      sunrise: data.daily?.sunrise?.[0] ?? null,
-      sunset: data.daily?.sunset?.[0] ?? null,
-      humidity,
-      visibility
-    });
 
+      // temperature (metric base)
+      temperature_c: apiData.current_weather.temperature,
+
+      // wind (metric base)
+      wind_mps: apiData.current_weather.windspeed,
+      wind_direction: apiData.current_weather.winddirection,
+
+      // humidity (%)
+      humidity: apiData.hourly.relativehumidity_2m[0],
+
+      // visibility (meters)
+      visibility_m: apiData.hourly.visibility[0],
+
+      // dates (ISO strings)
+      sunrise: apiData.daily.sunrise[0],
+      sunset: apiData.daily.sunset[0],
+    })
   } catch (error) {
-    res.status(500).json({ error: "Failed to load weather data" });
+    res.status(500).json({
+      error: "Failed to load weather data",
+    })
   }
 }
