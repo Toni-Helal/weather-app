@@ -28,17 +28,25 @@ export default function Home() {
     return <p>Loading...</p>;
   }
 
-    const theme = getWeatherTheme(weatherData.weatherCode);
+    const theme = getWeatherTheme(
+      weatherData.weatherCode,
+      weatherData.time,
+      weatherData.sunrise,
+      weatherData.sunset
+    );
 
     return (
       <div className={styles[theme] || styles.default}>
         <ContentBox>
-          <MainCard
-            city={weatherData.city}
-            temperature={weatherData.temperature}
-            windSpeed={weatherData.windSpeed}
-            weatherCode={weatherData.weatherCode}
-          />
+            <MainCard
+              city={weatherData.city}
+              temperature={weatherData.temperature}
+              windSpeed={weatherData.windSpeed}
+              weatherCode={weatherData.weatherCode}
+              time={weatherData.time}
+              sunrise={weatherData.sunrise}
+              sunset={weatherData.sunset}
+            />
           <DateAndTime
             time={weatherData.time}
             sunrise={weatherData.sunrise}
