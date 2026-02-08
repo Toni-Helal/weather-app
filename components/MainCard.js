@@ -1,3 +1,4 @@
+import Image from "next/image"
 import styles from "./MainCard.module.css"
 import { getWeatherIcon } from "../utils/weatherIconMap"
 
@@ -7,10 +8,8 @@ export function MainCard({ data, unitSystem }) {
   const {
     city,
     temperature_c,
-    wind_mps,
     sunrise,
     sunset,
-    humidity,
   } = data
 
   // === Temperature ===
@@ -34,9 +33,11 @@ export function MainCard({ data, unitSystem }) {
     <div className={styles.card}>
       <h2 className={styles.city}>{city}</h2>
 
-      <img
+      <Image
         src={icon}
         alt="weather icon"
+        width={180}
+        height={180}
         className={styles.icon}
       />
 
