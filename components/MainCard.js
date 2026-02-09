@@ -5,21 +5,37 @@ import { getWeatherIcon } from "../utils/weatherIconMap"
 export function MainCard({ data, unitSystem }) {
   if (!data) return null
 
+  const isNumber = (value) =>
+    typeof value === "number" && Number.isFinite(value)
+
   const {
     city,
     temperature_c,
+    feels_like_c,
     sunrise,
     sunset,
   } = data
 
   // === Temperature ===
-  const tempC = temperature_c
-  const tempF = Math.round(tempC * 9 / 5 + 32)
+  const tempC = isNumber(temperature_c) ? temperature_c : null
+  const tempF = tempC === null ? null : Math.round(tempC * 9 / 5 + 32)
 
-  const temperature =
-    unitSystem === "metric"
+  const feelsLikeC = isNumber(feels_like_c) ? feels_like_c : null
+  const feelsLikeF = feelsLikeC === null
+    ? null
+    : Math.round(feelsLikeC * 9 / 5 + 32)
+
+  const temperature = tempC === null
+    ? "—"
+    : unitSystem === "metric"
       ? `${tempC}°C`
       : `${tempF}°F`
+
+  const feelsLike = feelsLikeC === null
+    ? null
+    : unitSystem === "metric"
+      ? `${feelsLikeC}°C`
+      : `${feelsLikeF}°F`
 
   // === Icon ===
   const icon = getWeatherIcon(
@@ -42,6 +58,11 @@ export function MainCard({ data, unitSystem }) {
       />
 
       <h1>{temperature}</h1>
+      {feelsLike && (
+        <p className={styles.feelsLike}>
+          Feels like {feelsLike}
+        </p>
+      )}
     </div>
   )
 }

@@ -18,6 +18,9 @@ function getWindDirectionLabel(deg) {
 export function MetricsBox({ data, unitSystem }) {
   if (!data) return null
 
+  const isNumber = (value) =>
+    typeof value === "number" && Number.isFinite(value)
+
   // === Base metric values from API ===
   const windMps = data.wind_mps
   const visibilityMeters = data.visibility_m
@@ -25,14 +28,22 @@ export function MetricsBox({ data, unitSystem }) {
   const windDirection = data.wind_direction
 
   // === Conversions ===
-  const windMetric = `${Math.round(windMps)} m/s`
-  const windImperial = `${Math.round(windMps * 2.237)} mph`
+  const windMetric = isNumber(windMps)
+    ? `${Math.round(windMps)} m/s`
+    : "—"
+  const windImperial = isNumber(windMps)
+    ? `${Math.round(windMps * 2.237)} mph`
+    : "—"
 
-  const visibilityKm = Math.round(visibilityMeters / 1000)
-  const visibilityMiles = Math.round(visibilityKm * 0.621)
+  const visibilityKm = isNumber(visibilityMeters)
+    ? Math.round(visibilityMeters / 1000)
+    : null
+  const visibilityMiles = visibilityKm === null
+    ? null
+    : Math.round(visibilityKm * 0.621)
 
-  const visibilityMetric = `${visibilityKm} km`
-  const visibilityImperial = `${visibilityMiles} mi`
+  const visibilityMetric = visibilityKm === null ? "—" : `${visibilityKm} km`
+  const visibilityImperial = visibilityMiles === null ? "—" : `${visibilityMiles} mi`
 
   // === Dates (guarded) ===
   const sunrise = data.sunrise
@@ -77,7 +88,7 @@ export function MetricsBox({ data, unitSystem }) {
 
       <MetricsCard
         title="Humidity"
-        value={`${humidity}%`}
+        value={isNumber(humidity) ? `${humidity}%` : "—"}
         icon="/icons/humidity.png"
       />
 

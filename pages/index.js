@@ -9,6 +9,7 @@ import { getWeatherTheme } from "../utils/weatherMap"
 export default function Home() {
   // === 1. Weather data ===
   const [weatherData, setWeatherData] = useState(null)
+  const [errorMessage, setErrorMessage] = useState("")
 
   // === 2. Unit system (single source of truth) ===
   const [unitSystem, setUnitSystem] = useState("metric")
@@ -25,9 +26,19 @@ export default function Home() {
   // === 4. Fetch weather data ===
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch("/api/data")
-      const data = await res.json()
-      setWeatherData(data)
+      try {
+        const res = await fetch("/api/data")
+        const data = await res.json()
+
+        if (!res.ok || data?.error) {
+          throw new Error(data?.error || "Invalid weather payload")
+        }
+
+        setWeatherData(data || null)
+        setErrorMessage("")
+      } catch (error) {
+        setErrorMessage("Unable to load weather data right now.")
+      }
     }
 
     fetchData()
@@ -36,7 +47,7 @@ export default function Home() {
   }, [])
 
   if (!weatherData) {
-    return <p>Loading...</p>
+    return <p>{errorMessage || "Loading..."}</p>
   }
 
   // === 5. Theme ===
