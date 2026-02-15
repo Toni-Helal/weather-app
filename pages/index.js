@@ -5,10 +5,11 @@ import { DateAndTime } from "../components/DateAndTime"
 import { MetricsBox } from "../components/MetricsBox"
 import styles from "../styles/Home.module.css"
 import { getWeatherTheme } from "../utils/weatherMap"
+import { fetchWeatherData } from "../utils/weatherData"
 
-export default function Home() {
+export default function Home({ initialWeatherData }) {
   // === 1. Weather data ===
-  const [weatherData, setWeatherData] = useState(null)
+  const [weatherData, setWeatherData] = useState(initialWeatherData || null)
   const [errorMessage, setErrorMessage] = useState("")
 
   // === 2. Unit system (single source of truth) ===
@@ -25,6 +26,8 @@ export default function Home() {
 
   // === 4. Fetch weather data ===
   useEffect(() => {
+    if (initialWeatherData) return
+
     const fetchData = async () => {
       try {
         const res = await fetch("/api/data")
@@ -44,7 +47,7 @@ export default function Home() {
     fetchData()
     const interval = setInterval(fetchData, 60 * 60 * 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [initialWeatherData])
 
   if (!weatherData) {
     return <p>{errorMessage || "Loading..."}</p>
@@ -79,4 +82,14 @@ export default function Home() {
       </ContentBox>
     </div>
   )
+}
+
+export async function getServerSideProps() {
+  try {
+    const initialWeatherData = await fetchWeatherData()
+    return { props: { initialWeatherData } }
+  } catch (error) {
+    console.error("SSR weather fetch failed", error)
+    return { props: { initialWeatherData: null } }
+  }
 }
