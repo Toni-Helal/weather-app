@@ -25,7 +25,6 @@
 .card {
   width: 100%;
   max-width: 360px;
-  min-height: 520px;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 24px;
   padding: 40px 24px;
