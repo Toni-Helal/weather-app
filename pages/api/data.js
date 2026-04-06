@@ -40,7 +40,11 @@ function localStringToUnix(localStr, utcOffsetSeconds) {
 }
 
 export default async function handler(req, res) {
-  const { latitude, longitude, city, country } = location;
+  const body = req.body || {};
+  const latitude  = body.lat     ?? location.latitude;
+  const longitude = body.lon     ?? location.longitude;
+  const city      = body.city    ?? location.city;
+  const country   = body.country ?? location.country;
 
   const url =
     `https://api.open-meteo.com/v1/forecast` +

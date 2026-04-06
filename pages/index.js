@@ -9,28 +9,60 @@ import { UnitSwitch } from "../components/UnitSwitch";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { ErrorScreen } from "../components/ErrorScreen";
 
+import cities from "../config/cities.json";
 import styles from "../styles/Home.module.css";
 
 export const App = () => {
-  const [weatherData, setWeatherData] = useState();
-  const [unitSystem, setUnitSystem] = useState("metric");
+  const [weatherCache, setWeatherCache] = useState({});
+  const [cycleIndex, setCycleIndex] = useState(0);
 
-  const fetchWeather = async () => {
-    const res = await fetch("api/data", { method: "POST" });
-    const data = await res.json();
-    setWeatherData({ ...data });
+  const fetchAllCities = async () => {
+    const results = await Promise.all(
+      cities.map((c) =>
+        fetch("/api/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lat: c.latitude,
+            lon: c.longitude,
+            city: c.city,
+            country: c.country,
+          }),
+        }).then((r) => r.json())
+      )
+    );
+    const cache = {};
+    results.forEach((d) => {
+      cache[d.name] = d;
+    });
+    setWeatherCache(cache);
   };
 
   useEffect(() => {
-    fetchWeather();
-    const interval = setInterval(fetchWeather, 60 * 60 * 1000);
-    return () => clearInterval(interval);
+    fetchAllCities();
+    const dataInterval = setInterval(fetchAllCities, 60 * 60 * 1000);
+    const cycleInterval = setInterval(() => {
+      setCycleIndex((i) => (i + 1) % (cities.length * 2));
+    }, 10_000);
+    return () => {
+      clearInterval(dataInterval);
+      clearInterval(cycleInterval);
+    };
   }, []);
 
-  const changeSystem = () =>
-    unitSystem === "metric" ? setUnitSystem("imperial") : setUnitSystem("metric");
+  const cityIndex = Math.floor(cycleIndex / 2);
+  const unitSystem = cycleIndex % 2 === 0 ? "metric" : "imperial";
+  const weatherData = weatherCache[cities[cityIndex].city];
 
-  return weatherData && !weatherData.message ? (
+  const changeSystem = () =>
+    setCycleIndex((i) => {
+      const base = Math.floor(i / 2) * 2;
+      return i % 2 === 0 ? base + 1 : base;
+    });
+
+  const allLoaded = cities.every((c) => weatherCache[c.city]);
+
+  return allLoaded && weatherData && !weatherData.message ? (
     <div className={styles.wrapper}>
       <MainCard
         city={weatherData.name}
