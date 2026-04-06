@@ -6,10 +6,15 @@ function toNumberOrNull(value) {
   return Number.isFinite(num) ? num : null
 }
 
-export async function fetchWeatherData() {
+export async function fetchWeatherData(overrides = {}) {
   const filePath = path.join(process.cwd(), "config/location.json")
   const fileData = fs.readFileSync(filePath, "utf8")
-  const { latitude, longitude, city } = JSON.parse(fileData)
+  const defaults = JSON.parse(fileData)
+
+  const latitude = overrides.latitude ?? defaults.latitude
+  const longitude = overrides.longitude ?? defaults.longitude
+  const city = overrides.city ?? defaults.city
+  const country = overrides.country ?? defaults.country ?? ""
 
   const params = new URLSearchParams({
     latitude: String(latitude),
@@ -89,6 +94,7 @@ export async function fetchWeatherData() {
 
   return {
     city,
+    country,
     temperature_c: temperature,
     feels_like_c: feelsLike,
     weatherCode,

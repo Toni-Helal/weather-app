@@ -33,7 +33,7 @@ export const App = () => {
     );
     const cache = {};
     results.forEach((d) => {
-      cache[d.name] = d;
+      cache[d.city] = d;
     });
     setWeatherCache(cache);
   };
@@ -62,25 +62,18 @@ export const App = () => {
 
   const allLoaded = cities.every((c) => weatherCache[c.city]);
 
-  return allLoaded && weatherData && !weatherData.message ? (
+  return allLoaded && weatherData && !weatherData.error ? (
     <div className={styles.wrapper}>
-      <MainCard
-        city={weatherData.name}
-        country={weatherData.sys.country}
-        description={weatherData.weather[0].description}
-        iconName={weatherData.weather[0].icon}
-        unitSystem={unitSystem}
-        weatherData={weatherData}
-      />
+      <MainCard data={weatherData} unitSystem={unitSystem} />
       <ContentBox>
         <Header>
-          <DateAndTime weatherData={weatherData} unitSystem={unitSystem} />
+          <DateAndTime />
         </Header>
-        <MetricsBox weatherData={weatherData} unitSystem={unitSystem} />
+        <MetricsBox data={weatherData} unitSystem={unitSystem} />
         <UnitSwitch onClick={changeSystem} unitSystem={unitSystem} />
       </ContentBox>
     </div>
-  ) : weatherData && weatherData.message ? (
+  ) : weatherData && weatherData.error ? (
     <ErrorScreen errorMessage="Unable to load weather data, please try again later." />
   ) : (
     <LoadingScreen loadingMessage="Loading data..." />
