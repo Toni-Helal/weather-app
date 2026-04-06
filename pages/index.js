@@ -1,95 +1,90 @@
-import { useState, useEffect } from "react"
-import { ContentBox } from "../components/ContentBox"
-import { MainCard } from "../components/MainCard"
-import { DateAndTime } from "../components/DateAndTime"
-import { MetricsBox } from "../components/MetricsBox"
-import styles from "../styles/Home.module.css"
-import { getWeatherTheme } from "../utils/weatherMap"
-import { fetchWeatherData } from "../utils/weatherData"
+import { useState, useEffect } from "react";
 
-export default function Home({ initialWeatherData }) {
-  // === 1. Weather data ===
-  const [weatherData, setWeatherData] = useState(initialWeatherData || null)
-  const [errorMessage, setErrorMessage] = useState("")
+import { MainCard } from "../components/MainCard";
+import { ContentBox } from "../components/ContentBox";
+import { Header } from "../components/Header";
+import { DateAndTime } from "../components/DateAndTime";
+import { MetricsBox } from "../components/MetricsBox";
+import { UnitSwitch } from "../components/UnitSwitch";
+import { LoadingScreen } from "../components/LoadingScreen";
+import { ErrorScreen } from "../components/ErrorScreen";
 
-  // === 2. Unit system (single source of truth) ===
-  const [unitSystem, setUnitSystem] = useState("metric")
+import cities from "../config/cities.json";
+import styles from "../styles/Home.module.css";
 
-  // === 3. Auto-switch unit system every 10s ===
+export const App = () => {
+  const [weatherCache, setWeatherCache] = useState({});
+  const [cycleIndex, setCycleIndex] = useState(0);
+
+  const fetchAllCities = async () => {
+    const results = await Promise.all(
+      cities.map((c) =>
+        fetch("/api/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lat: c.latitude,
+            lon: c.longitude,
+            city: c.city,
+            country: c.country,
+          }),
+        }).then((r) => r.json())
+      )
+    );
+    const cache = {};
+    results.forEach((d) => {
+      cache[d.name] = d;
+    });
+    setWeatherCache(cache);
+  };
+
   useEffect(() => {
-    const id = setInterval(() => {
-      setUnitSystem(u => (u === "metric" ? "imperial" : "metric"))
-    }, 10000)
+    fetchAllCities();
+    const dataInterval = setInterval(fetchAllCities, 60 * 60 * 1000);
+    const cycleInterval = setInterval(() => {
+      setCycleIndex((i) => (i + 1) % (cities.length * 2));
+    }, 10_000);
+    return () => {
+      clearInterval(dataInterval);
+      clearInterval(cycleInterval);
+    };
+  }, []);
 
-    return () => clearInterval(id)
-  }, [])
+  const cityIndex = Math.floor(cycleIndex / 2);
+  const unitSystem = cycleIndex % 2 === 0 ? "metric" : "imperial";
+  const weatherData = weatherCache[cities[cityIndex].city];
 
-  // === 4. Fetch weather data ===
-  useEffect(() => {
-    if (initialWeatherData) return
+  const changeSystem = () =>
+    setCycleIndex((i) => {
+      const base = Math.floor(i / 2) * 2;
+      return i % 2 === 0 ? base + 1 : base;
+    });
 
-    const fetchData = async () => {
-      try {
-        const res = await fetch("/api/data")
-        const data = await res.json()
+  const allLoaded = cities.every((c) => weatherCache[c.city]);
 
-        if (!res.ok || data?.error) {
-          throw new Error(data?.error || "Invalid weather payload")
-        }
-
-        setWeatherData(data || null)
-        setErrorMessage("")
-      } catch (error) {
-        setErrorMessage("Unable to load weather data right now.")
-      }
-    }
-
-    fetchData()
-    const interval = setInterval(fetchData, 60 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [initialWeatherData])
-
-  if (!weatherData) {
-    return <p>{errorMessage || "Loading..."}</p>
-  }
-
-  // === 5. Theme ===
-  const theme = getWeatherTheme(
-    weatherData.weatherCode,
-    weatherData.time,
-    weatherData.sunrise,
-    weatherData.sunset
-  )
-
-  return (
-    <div className={styles[theme] || styles["default-day"]}>
+  return allLoaded && weatherData && !weatherData.message ? (
+    <div className={styles.wrapper}>
+      <MainCard
+        city={weatherData.name}
+        country={weatherData.sys.country}
+        description={weatherData.weather[0].description}
+        iconName={weatherData.weather[0].icon}
+        unitSystem={unitSystem}
+        weatherData={weatherData}
+      />
       <ContentBox>
-        <div className={styles.left}>
-          <MainCard
-            data={weatherData}
-            unitSystem={unitSystem}
-          />
-        </div>
-
-        <div className={styles.right}>
-          <DateAndTime />
-
-          <MetricsBox
-            data={weatherData}
-            unitSystem={unitSystem}
-          />
-        </div>
+        <Header>
+          <DateAndTime weatherData={weatherData} unitSystem={unitSystem} />
+        </Header>
+        <MetricsBox weatherData={weatherData} unitSystem={unitSystem} />
+        <UnitSwitch onClick={changeSystem} unitSystem={unitSystem} />
       </ContentBox>
     </div>
-  )
-}
+  ) : weatherData && weatherData.message ? (
+    <ErrorScreen errorMessage="Unable to load weather data, please try again later." />
+  ) : (
+    <LoadingScreen loadingMessage="Loading data..." />
+  );
+};
 
-export async function getServerSideProps() {
-  try {
-    const initialWeatherData = await fetchWeatherData()
-    return { props: { initialWeatherData } }
-  } catch (error) {
-    console.error("SSR weather fetch failed", error)
-    return { props: { initialWeatherData: null } }
-  }
-}
+export default App;
