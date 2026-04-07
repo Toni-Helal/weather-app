@@ -17,9 +17,11 @@ export const App = () => {
   const [cycleIndex, setCycleIndex] = useState(0);
 
   const fetchAllCities = async () => {
-    const results = await Promise.all(
-      cities.map((c) =>
-        fetch("/api/data", {
+    const cache = {};
+    for (let i = 0; i < cities.length; i++) {
+      const c = cities[i];
+      try {
+        const r = await fetch("/api/data", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -28,15 +30,12 @@ export const App = () => {
             city: c.city,
             country: c.country,
           }),
-        })
-          .then((r) => r.json())
-          .catch(() => ({ city: c.city, error: true }))
-      )
-    );
-    const cache = {};
-    results.forEach((d, i) => {
-      cache[cities[i].city] = d;
-    });
+        });
+        cache[c.city] = await r.json();
+      } catch {
+        cache[c.city] = { city: c.city, error: true };
+      }
+    }
     setWeatherCache(cache);
   };
 
