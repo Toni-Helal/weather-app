@@ -28,12 +28,14 @@ export const App = () => {
             city: c.city,
             country: c.country,
           }),
-        }).then((r) => r.json())
+        })
+          .then((r) => r.json())
+          .catch(() => ({ city: c.city, error: true }))
       )
     );
     const cache = {};
-    results.forEach((d) => {
-      cache[d.city] = d;
+    results.forEach((d, i) => {
+      cache[cities[i].city] = d;
     });
     setWeatherCache(cache);
   };
